@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">NavigateMe</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="google_directions_key">AIzaSyDSOg6Z-MLc-StiuCgEnBEFgfgPjQmNjHw</string>
+</resources>
