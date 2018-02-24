@@ -8,7 +8,7 @@ import com.example.ubiquity.navigateme.Remote.RetrofitClient;
  */
 
 public class Common {
-    public static final String baseURL="https://www.googleapis.com";
+    public static final String baseURL="https://maps.googleapis.com/";
     public static IGoogleApi getIGoogleApi(){
         return RetrofitClient.getClient(baseURL).create(IGoogleApi.class);
     }

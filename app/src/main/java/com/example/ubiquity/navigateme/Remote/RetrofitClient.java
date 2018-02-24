@@ -1,8 +1,7 @@
 package com.example.ubiquity.navigateme.Remote;
 
 import retrofit2.Retrofit;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
-
+import retrofit2.converter.gson.GsonConverterFactory;
 /**
  * Created by Ubiquity on 1/26/2018.
  */
@@ -16,7 +15,7 @@ public class RetrofitClient {
         {
             retrofit = new Retrofit.Builder()
                 .baseUrl(baseURL)
-                    .addConverterFactory(ScalarsConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
         }
