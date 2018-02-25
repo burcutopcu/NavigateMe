@@ -10,6 +10,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -49,11 +50,19 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -71,7 +80,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int MY_PERMISSION_CODE=1000;
     private GoogleApiClient mGoogleApiClient;
     private GoogleMap mMap;
-
+    ArrayList<LatLng> listPoints;
     private double latitude, longitude;
     private Location mLocation;
     private Marker mMarker;
@@ -85,9 +94,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInatanceState);
         setContentView(R.layout.activity_maps);
 
+
         SupportMapFragment mapFragment= (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        listPoints= new ArrayList<>();
 
         mService= Common.getIGoogleApi();
 
@@ -162,6 +174,91 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setMyLocationEnabled(true);
 
         }
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                //Reset marker when already 2
+                if(listPoints.size() == 2) {
+                    listPoints.clear();
+                    mMap.clear();
+                }
+                //save first point select
+                listPoints.add(latLng);
+                //Create marker
+                MarkerOptions markerOptions=new MarkerOptions()
+                        .position(latLng);
+
+                if(listPoints.size()==1) {
+                    //Add first marker to the app
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+                }
+                else{
+                    //Add second marker to the app
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                }
+                mMap.addMarker(markerOptions);
+
+                if(listPoints.size()==2) {
+                    //Create the URL to get request from first marker to second
+                    String url= getRequestUrl(listPoints.get(0),listPoints.get(1));
+                    TaskRequestDirections taskRequestDirections=new TaskRequestDirections();
+                    taskRequestDirections.execute(url);
+                }
+            }
+        });
+    }
+
+    private String getRequestUrl(LatLng origin, LatLng dest) {
+        //Value of origin
+        String str_org= "origin=" + origin.latitude + "," + origin.longitude;
+        //value of dest
+        String str_dest="destination=" + dest.latitude + ","+ origin.longitude;
+        //Set value enable the sensor
+        String sensor= "sensor=false";
+        //Mode for find direction
+        String mode="mode=driving";
+        //Build the full param
+        String param= str_org+"&"+str_dest+"&"+sensor+"&"+mode;
+        //Output format
+        String output="json";
+        //Create url to request
+        String url="https://maps.googleapis.com/maps/api/directions/"+output+"?"+param;
+        return url;
+    }
+
+    private String requestDirection(String reqUrl) throws IOException {
+        String responseString="";
+        InputStream inputStream=null;
+        HttpURLConnection httpURLConnection=null;
+        try{
+            URL url= new URL(reqUrl);
+            httpURLConnection= (HttpURLConnection) url.openConnection();
+            httpURLConnection.connect();
+
+            //Get the response result
+            inputStream= httpURLConnection.getInputStream();
+            InputStreamReader inputStreamReader= new InputStreamReader(inputStream);
+            BufferedReader bufferedReader= new BufferedReader(inputStreamReader);
+
+            StringBuffer stringBuffer=new StringBuffer();
+            String line="";
+            while((line= bufferedReader.readLine()) != null) {
+                stringBuffer.append(line);
+            }
+
+            responseString =stringBuffer.toString();
+            bufferedReader.close();
+            inputStream.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(inputStream !=null) {
+                inputStream.close();
+            }
+            httpURLConnection.disconnect();
+        }
+        return responseString;
     }
 
     private synchronized void buildGoogleAPIClient() {
@@ -240,6 +337,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
+    public class TaskRequestDirections extends AsyncTask<String,Void,String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String responseString="";
+            try{
+                responseString=requestDirection(strings[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return responseString;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            //Parse json
+            TaskParser taskParser= new TaskParser();
+            taskParser.execute(s);
+        }
+    }
+
+    public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String,String>>>> {
+
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... strings) {
+            JSONObject jsonObject=null;
+            List<List<HashMap<String,String>>> routes=null;
+            try {
+                jsonObject =new JSONObject(strings[0]);
+                DirectionParser directionParser= new DirectionParser();
+                routes= directionParser.parse(jsonObject);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return routes;
+        }
+        @Override
+        protected void onPostExecute (List<List<HashMap<String, String>>> lists) {
+            //Get list route and display it into the map
+
+            ArrayList points= null;
+
+            PolylineOptions polylineOptions=null;
+
+            for(List<HashMap<String, String>> path: lists) {
+                points = new ArrayList<>();
+                polylineOptions= new PolylineOptions();
+
+
+                for(HashMap<String, String> point: path) {
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lon = Double.parseDouble(point.get("lon"));
+
+                    points.add(new LatLng(lat,lon));
+                }
+
+                polylineOptions= polylineOptions.addAll(points);
+                polylineOptions= polylineOptions.width(15);
+                polylineOptions=polylineOptions.color(Color.BLUE);
+                polylineOptions=polylineOptions.geodesic(true);
+            }
+
+            if(polylineOptions != null) {
+                mMap.addPolyline(polylineOptions);
+            }
+            else{
+                Toast.makeText(MapsActivity.this, "Direction not found!!", Toast.LENGTH_SHORT).show();
+            }
+
+
+            super.onPostExecute(lists);
+        }
+    }
+
 }
 
 

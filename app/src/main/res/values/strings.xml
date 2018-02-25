@@ -2,4 +2,17 @@
     <string name="app_name">NavigateMe</string>
     <string name="title_activity_maps">Map</string>
     <string name="google_directions_key">AIzaSyDSOg6Z-MLc-StiuCgEnBEFgfgPjQmNjHw</string>
+
+    <string name="title_activity_welcome">Home Screen</string>
+    <string name="next">NEXT</string>
+    <string name="skip">SKIP</string>
+    <string name="start">GOT IT</string>
+    <string name="slide_1_title"> Location </string>
+    <string name="slide_1_desc">First, open your location in your device</string>
+    <string name="slide_2_title"> Long Click </string>
+    <string name="slide_2_desc"> Select your destination and origin locations by clicking long on Map </string>
+    <string name="slide_3_title"> Distance </string>
+    <string name="slide_3_desc"> Learn the distance between two points that you selected </string>
+    <string name="play_again_desc">To see the welcome slider again, goto Settings -> apps -> welcome slider -> clear data</string>
+    <string name="play_again">Play Again</string>
 </resources>

@@ -1,53 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#90CAF9">
+    tools:showIn="@layout/activity_splash">
 
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingLeft="80dp">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="150dp"
-            android:src="@mipmap/ic_earth"
-            android:paddingLeft="80dp"
-            android:paddingTop="100dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="NAVIGATE ME"
-            android:textColor="#303F9F"
-            android:textStyle="bold"
-            android:textSize="25dp"
-            android:layout_gravity="center"
-            android:paddingLeft="25dp"
-            android:paddingTop="20dp"/>
-
-
-    </LinearLayout>
-
-
-    <LinearLayout
+    <android.support.v4.view.ViewPager
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    <com.wang.avi.AVLoadingIndicatorView
-        android:id="@+id/avi"
-        style="@style/AVLoadingIndicatorView"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:id="@+id/layoutDots"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dots_height"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/dots_margin_bottom"
+        android:gravity="center"
+        android:orientation="horizontal"></LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:alpha=".5"
+        android:layout_above="@id/layoutDots"
+        android:background="@android:color/white" />
+    <Button
+        android:id="@+id/btn_next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:visibility="visible"
-        android:paddingLeft="160dp"
-        app:indicatorColor="#303F9F"
-        app:indicatorName="BallTrianglePathIndicator"/>
-    </LinearLayout>
-
-</LinearLayout>
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
+        android:background="@null"
+        android:text="@string/next"
+        android:textColor="@android:color/white" />
+    <Button
+        android:id="@+id/btn_skip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="20dp"
+        android:background="@null"
+        android:text="@string/skip"
+        android:textColor="@android:color/white" />
+</RelativeLayout>
